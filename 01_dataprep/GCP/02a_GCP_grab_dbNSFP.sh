@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run this on an c3-standard-8 with 2 TB of local storage
+# Run this on an c3d-standard-8 with 2 TB of balanced PD storage
 
 # Extract the [GCPConfig] section of the config file and convert it to a Bash-friendly format
 awk -F '=' '/^\[GCPConfig\]/ {flag=1; next} /^\[/ && flag {flag=0} flag && /=/ {gsub(/[[:space:]]*=[[:space:]]*/, "="); print $1 "=" $2}' ../../config.ini > temp_gcp_config.sh

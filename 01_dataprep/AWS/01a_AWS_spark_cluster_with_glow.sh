@@ -19,7 +19,7 @@ CLUSTER_ID=$(aws emr create-cluster \
     --release-label emr-7.0.0 \
     --applications Name=Spark \
     --use-default-roles \
-    --instance-groups '[{"Name":"Primary","InstanceGroupType":"MASTER","InstanceCount":1,"InstanceType":"r7g.xlarge","EbsConfiguration":{"EbsOptimized":true}},{"Name":"Core","InstanceGroupType":"CORE","InstanceCount":25,"InstanceType":"r7g.16xlarge","EbsConfiguration":{"EbsBlockDeviceConfigs":[{"VolumeSpecification":{"SizeInGB":100,"VolumeType":"gp2"},"VolumesPerInstance":1}],"EbsOptimized":true},"BidPrice":"OnDemandPrice"}]' \
+    --instance-groups '[{"Name":"Primary","InstanceGroupType":"MASTER","InstanceCount":1,"InstanceType":"r7g.xlarge","EbsConfiguration":{"EbsOptimized":true,"EbsBlockDeviceConfigs":[{"VolumeSpecification":{"SizeInGB":50,"VolumeType":"gp3"},"VolumesPerInstance":1}]}} ,{"Name":"Core","InstanceGroupType":"CORE","InstanceCount":25,"InstanceType":"r7g.16xlarge","EbsConfiguration":{"EbsOptimized":true,"EbsBlockDeviceConfigs":[{"VolumeSpecification":{"SizeInGB":100,"VolumeType":"gp3"},"VolumesPerInstance":1}]},"BidPrice":"OnDemandPrice"}]' \
     --ec2-attributes KeyName=$EC2_KEYPAIR,SubnetId=$EC2_SUBNET,EmrManagedMasterSecurityGroup=$EMR_MASTER_SG_WITH_SSH_ENABLED,EmrManagedSlaveSecurityGroup=$EMR_SLAVE_SG \
     --applications Name=Spark \
     --configurations '[{"Classification":"spark-hive-site","Properties":{"hive.metastore.client.factory.class":"com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"}}]' \

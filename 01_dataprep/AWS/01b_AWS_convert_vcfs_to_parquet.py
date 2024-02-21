@@ -36,10 +36,14 @@ hdfs_fs = hdfs.connect()
 
 for chrom in [x for x in range(1, 23)] + ["X", "Y"]:
     spark.conf.set("spark.sql.shuffle.partitions", 400)
-    input_path = f"s3://gnomad-public-us-east-1/release/3.1.2/vcf/genomes/gnomad.genomes.v3.1.2.sites.chr{chrom}.vcf.bgz"
+    input_path = f"s3://gnomad-public-us-east-1/release/4.0/vcf/genomes/gnomad.genomes.v4.0.sites.chr{chrom}.vcf.bgz"
+    # input_path = f"s3://gnomad-public-us-east-1/release/3.1.2/vcf/genomes/gnomad.genomes.v3.1.2.sites.chr{chrom}.vcf.bgz"
     output_parquet_path = (
-        f"s3://{output_bucket}/gnomad/gnomad_genomes_v3.1.2_chr{chrom}.parquet"
+        f"s3://{output_bucket}/gnomad/gnomad_genomes_v4.0_chr{chrom}.parquet"
     )
+    # output_parquet_path = (
+    #     f"s3://{output_bucket}/gnomad/gnomad_genomes_v3.1.2_chr{chrom}.parquet"
+    # )
     print(f"Converting {input_path} to {output_parquet_path}")
     # First, convert the VCF to Parquet format
     # Identify and flatten any struct columns

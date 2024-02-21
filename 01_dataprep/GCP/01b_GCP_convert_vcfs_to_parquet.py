@@ -42,9 +42,13 @@ target_partition_size_mb = 256
 # https://gnomad.broadinstitute.org/downloads#v3
 for chrom in [x for x in range(1, 23)] + ["X", "Y"]:
     spark.conf.set("spark.sql.shuffle.partitions", 400)
-    input_path = f"gs://gcp-public-data--gnomad/release/3.1.2/vcf/genomes/gnomad.genomes.v3.1.2.sites.chr{chrom}.vcf.bgz"
+    # input_path = f"gs://gcp-public-data--gnomad/release/3.1.2/vcf/genomes/gnomad.genomes.v3.1.2.sites.chr{chrom}.vcf.bgz"
+    input_path = f"gs://gcp-public-data--gnomad/release/4.0/vcf/genomes/gnomad.genomes.v4.0.sites.chr{chrom}.vcf.bgz"
+    # output_parquet_path = (
+    #     f"gs://{output_bucket}/gnomad/gnomad_genomes_v3.1.2_chr{chrom}.parquet"
+    # )
     output_parquet_path = (
-        f"gs://{output_bucket}/gnomad/gnomad_genomes_v3.1.2_chr{chrom}.parquet"
+        f"gs://{output_bucket}/gnomad/gnomad_genomes_v4.0_chr{chrom}.parquet"
     )
     print(f"Converting {input_path} to {output_parquet_path}")
     # First, convert the VCF to Parquet format
@@ -102,7 +106,7 @@ for chrom in [x for x in range(1, 23)] + ["X", "Y"]:
     )
     print(f"Using {ideal_num_partitions} partitions with chr{chrom}")
     spark.conf.set("spark.sql.shuffle.partitions", ideal_num_partitions)
-    # Write to S3 using ideal partition count
+    # Write to GCS using ideal partition count
     df = spark.read.parquet(f"gs://{output_bucket}/gnomad/tmp/sorted.parquet")
     df = df.orderBy("contigName", "start", "referenceAllele", "alternateAllele")
     df.write.mode("overwrite").format("parquet").saveAsTable(

@@ -6,7 +6,6 @@ source temp_gcp_config.sh
 
 # Upload Dataproc bootstrapping script and step script to GCS
 echo '#!/bin/bash' > dataproc_genomics_bootstrap.sh
-# echo '/opt/conda/default/bin/conda install -c conda-forge gcc==13.1.0' >> dataproc_genomics_bootstrap.sh
 echo 'sudo apt-get update' >> dataproc_genomics_bootstrap.sh
 echo 'sudo apt-get install -y gcc' >> dataproc_genomics_bootstrap.sh
 echo '/opt/conda/default/bin/pip3 install glow.py google-cloud-storage' >> dataproc_genomics_bootstrap.sh
