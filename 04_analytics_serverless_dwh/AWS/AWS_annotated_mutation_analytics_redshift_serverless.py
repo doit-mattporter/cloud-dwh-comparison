@@ -251,7 +251,7 @@ redshift_serverless_client.update_namespace(
 # Load gene data into Redshift
 load_data_to_redshift(
     "dbnsfp_gene",
-    f"s3://{output_bucket}/dbNSFP/dbNSFP4.4_gene_complete.parquet",
+    f"s3://{output_bucket}/dbNSFP/dbNSFP4.6_gene_complete.parquet",
     role_arn,
 )
 # Load variant annotation data into Redshift

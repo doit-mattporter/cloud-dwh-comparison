@@ -5,7 +5,7 @@
 awk -F '=' '/^\[AWSConfig\]/ {flag=1; next} /^\[/ && flag {flag=0} flag && /=/ {gsub(/[[:space:]]*=[[:space:]]*/, "="); print $1 "=" $2}' ../../config.ini > temp_aws_config.sh
 source temp_aws_config.sh
 
-EMR_MASTER_SG_WITH_SSH_ENABLED=$(aws ec2 describe-security-groups --filters Name=group-name,Values=ElasticMapReduce-master --query 'SecurityGroups[0].GroupId' --output text)
+EMR_MASTER_SG=$(aws ec2 describe-security-groups --filters Name=group-name,Values=ElasticMapReduce-master --query 'SecurityGroups[0].GroupId' --output text)
 EMR_SLAVE_SG=$(aws ec2 describe-security-groups --filters Name=group-name,Values=ElasticMapReduce-slave --query 'SecurityGroups[0].GroupId' --output text)
 
 # Upload EMR bootstrapping script and step script to S3
@@ -21,7 +21,7 @@ CLUSTER_ID=$(aws emr create-cluster \
     --applications Name=Spark \
     --use-default-roles \
     --instance-groups '[{"Name":"Primary","InstanceGroupType":"MASTER","InstanceCount":1,"InstanceType":"r7g.xlarge","EbsConfiguration":{"EbsOptimized":true}},{"Name":"Core","InstanceGroupType":"CORE","InstanceCount":30,"InstanceType":"r7g.16xlarge","EbsConfiguration":{"EbsBlockDeviceConfigs":[{"VolumeSpecification":{"SizeInGB":100,"VolumeType":"gp2"},"VolumesPerInstance":1}],"EbsOptimized":true},"BidPrice":"OnDemandPrice"}]' \
-    --ec2-attributes KeyName=$EC2_KEYPAIR,SubnetId=$EC2_SUBNET,EmrManagedMasterSecurityGroup=$EMR_MASTER_SG_WITH_SSH_ENABLED,EmrManagedSlaveSecurityGroup=$EMR_SLAVE_SG \
+    --ec2-attributes KeyName=$EC2_KEYPAIR,SubnetId=$EC2_SUBNET,EmrManagedMasterSecurityGroup=$EMR_MASTER_SG,EmrManagedSlaveSecurityGroup=$EMR_SLAVE_SG \
     --applications Name=Spark \
     --configurations '[{"Classification":"spark-hive-site","Properties":{"hive.metastore.client.factory.class":"com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"}}]' \
     --bootstrap-actions Path=s3://$EMR_DATA_BUCKET/scripts/emr_pyarrow_bootstrap.sh \

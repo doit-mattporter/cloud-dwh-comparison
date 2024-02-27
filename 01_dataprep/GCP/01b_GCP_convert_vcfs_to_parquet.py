@@ -42,11 +42,7 @@ target_partition_size_mb = 256
 # https://gnomad.broadinstitute.org/downloads#v3
 for chrom in [x for x in range(1, 23)] + ["X", "Y"]:
     spark.conf.set("spark.sql.shuffle.partitions", 400)
-    # input_path = f"gs://gcp-public-data--gnomad/release/3.1.2/vcf/genomes/gnomad.genomes.v3.1.2.sites.chr{chrom}.vcf.bgz"
     input_path = f"gs://gcp-public-data--gnomad/release/4.0/vcf/genomes/gnomad.genomes.v4.0.sites.chr{chrom}.vcf.bgz"
-    # output_parquet_path = (
-    #     f"gs://{output_bucket}/gnomad/gnomad_genomes_v3.1.2_chr{chrom}.parquet"
-    # )
     output_parquet_path = (
         f"gs://{output_bucket}/gnomad/gnomad_genomes_v4.0_chr{chrom}.parquet"
     )
@@ -125,7 +121,8 @@ for chrom in [x for x in range(1, 23)] + ["X", "Y"]:
 
 
 # Cleanup leftover temporary files in GCS
-# This is necessary as preemptible secondary workers cannot contribute to HDFS, so their temporary outputs (needed to avoid an excessively long query plan that crashes Spark) must go to GCS.
+# This is necessary as preemptible secondary workers cannot contribute to HDFS,
+# so their temporary outputs (required to avoid an excessively long query plan that crashes Spark) must go to GCS
 def delete_folder(bucket_name, folder_path):
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(bucket_name)
