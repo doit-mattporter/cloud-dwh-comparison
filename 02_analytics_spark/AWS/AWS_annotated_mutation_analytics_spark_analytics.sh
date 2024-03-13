@@ -4,9 +4,6 @@
 awk -F '=' '/^\[AWSConfig\]/ {flag=1; next} /^\[/ && flag {flag=0} flag && /=/ {gsub(/[[:space:]]*=[[:space:]]*/, "="); print $1 "=" $2}' ../../config.ini > temp_aws_config.ini
 source temp_aws_config.ini
 
-EMR_MASTER_SG=$(aws ec2 describe-security-groups --filters Name=group-name,Values=ElasticMapReduce-master --query 'SecurityGroups[0].GroupId' --output text)
-EMR_SLAVE_SG=$(aws ec2 describe-security-groups --filters Name=group-name,Values=ElasticMapReduce-slave --query 'SecurityGroups[0].GroupId' --output text)
-
 # Upload EMR step script to S3
 aws s3 cp AWS_annotated_mutation_analytics_spark_analytics.py s3://$EMR_DATA_BUCKET/scripts/
 
