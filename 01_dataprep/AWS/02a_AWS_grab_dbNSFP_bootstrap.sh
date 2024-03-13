@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# Assume /tmp/aws_config.sh is downloaded by the EC2 startup script
-source /tmp/aws_config.sh
+# Assume /tmp/aws_config.ini is downloaded by the EC2 startup script
+source /tmp/aws_config.ini
 
 # Grab zipped dbNSFP database, upload its unzipped TSVs to S3, and then launch an EMR cluster that converts those TSVs to Parquet
 sudo yum install -y unzip
@@ -33,7 +33,7 @@ CLUSTER_ID=$(aws emr create-cluster \
     --release-label emr-6.14.0 \
     --applications Name=Spark \
     --use-default-roles \
-    --instance-groups '[{"Name":"Primary","InstanceGroupType":"MASTER","InstanceCount":1,"InstanceType":"r7g.xlarge","EbsConfiguration":{"EbsOptimized":true}},{"Name":"Core","InstanceGroupType":"CORE","InstanceCount":8,"InstanceType":"r7g.16xlarge","EbsConfiguration":{"EbsBlockDeviceConfigs":[{"VolumeSpecification":{"SizeInGB":100,"VolumeType":"gp2"},"VolumesPerInstance":1}],"EbsOptimized":true},"BidPrice":"OnDemandPrice"}]' \
+    --instance-groups '[{"Name":"Primary","InstanceGroupType":"MASTER","InstanceCount":1,"InstanceType":"r7g.xlarge","EbsConfiguration":{"EbsBlockDeviceConfigs":[{"VolumeSpecification":{"SizeInGB":50,"VolumeType":"gp3"},"VolumesPerInstance":1}],"EbsOptimized":true}},{"Name":"Core","InstanceGroupType":"CORE","InstanceCount":8,"InstanceType":"r7g.16xlarge","EbsConfiguration":{"EbsBlockDeviceConfigs":[{"VolumeSpecification":{"SizeInGB":100,"VolumeType":"gp3"},"VolumesPerInstance":1}],"EbsOptimized":true},"BidPrice":"OnDemandPrice"}]' \
     --ec2-attributes KeyName=$EC2_KEYPAIR,SubnetId=$EC2_SUBNET,EmrManagedMasterSecurityGroup=$EMR_MASTER_SG,EmrManagedSlaveSecurityGroup=$EMR_SLAVE_SG \
     --applications Name=Spark \
     --configurations '[{"Classification":"spark-hive-site","Properties":{"hive.metastore.client.factory.class":"com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"}}]' \

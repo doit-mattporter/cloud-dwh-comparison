@@ -3,8 +3,9 @@
 # pip3 install glow.py
 # Then launch pyspark with this command:
 # nohup spark-submit --packages io.projectglow:glow-spark3_2.12:1.2.1 --conf spark.hadoop.io.compression.codecs=io.projectglow.sql.util.BGZFCodec 01b_GCP_convert_vcfs_to_parquet.py &
-import glow
 import sys
+
+import glow
 from google.cloud import storage
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, posexplode
@@ -13,11 +14,17 @@ from pyspark.sql.types import StructType
 if len(sys.argv) > 1:
     output_bucket = sys.argv[1]
 else:
-    raise ValueError("No output bucket specified. Please provide an output bucket as the first argument.")
+    raise ValueError(
+        "No output bucket specified. Please provide an output bucket as the first argument."
+    )
 
 spark = (
     SparkSession.builder.appName("Convert_gnomAD_VCFs_to_Parquet")
+    .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     .config("spark.sql.parquet.compression.codec", "snappy")
+    .config("spark.sql.cbo.enabled", True)
+    .config("spark.sql.cbo.joinReorder.enabled", True)
+    .config("spark.sql.adaptive.enabled", True)
     .config("spark.hadoop.io.compression.codecs", "io.projectglow.sql.util.BGZFCodec")
     .enableHiveSupport()
     .getOrCreate()
@@ -76,9 +83,11 @@ for chrom in [x for x in range(1, 23)] + ["X", "Y"]:
     ]
     # Use the alternateAlleles-based index to select corresponding elements from all other array columns
     new_columns = [
-        col(col_name).getItem(col("index")).alias(col_name)
-        if col_name in array_columns
-        else col(col_name)
+        (
+            col(col_name).getItem(col("index")).alias(col_name)
+            if col_name in array_columns
+            else col(col_name)
+        )
         for col_name in df.columns
     ]
     df = df.select(*new_columns)

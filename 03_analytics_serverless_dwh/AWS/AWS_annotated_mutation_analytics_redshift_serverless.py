@@ -15,6 +15,7 @@ redshift_storage_per_gb_per_month = float(
     config["AWSConfig"]["REDSHIFT_STORAGE_PER_GB_PER_MONTH"]
 )
 total_cost = 0
+total_query_runtime = 0
 
 # Initialize clients
 glue_client = boto3.client("glue", region_name="us-east-1")
@@ -50,13 +51,18 @@ def create_redshift_table_from_glue(glue_client, database_name, table_name):
         redshift_type = map_data_types(column["Type"], max_length)
         create_table_sql += f'"{column_name}" {redshift_type}, '
 
-    create_table_sql = create_table_sql.rstrip(", ") + ");"
+    if table_name != "dbnsfp_gene":
+        sort_key_fields = "chromosome, start_position, refallele, altallele"
+    else:
+        sort_key_fields = "gene_name"
+    create_table_sql = create_table_sql.rstrip(", ") + f") SORTKEY({sort_key_fields});"
+
     print(f"Creating Redshift Serverless table '{table_name}'")
-    execute_query_and_get_result(create_table_sql)
+    execute_query_and_get_result(create_table_sql, include_in_query_metrics=False)
 
 
-def execute_query_and_get_result(query):
-    global total_cost
+def execute_query_and_get_result(query, include_in_query_metrics=True):
+    global total_cost, total_query_runtime
     response = redshift_data.execute_statement(
         Database="dev", Sql=query, WorkgroupName="default-workgroup-ai"
     )
@@ -67,20 +73,27 @@ def execute_query_and_get_result(query):
     print(f"\nRuntime for the query shown below: {formatted_runtime}\n{query}\n")
     start_time = status_response["CreatedAt"]
     end_time = status_response["UpdatedAt"]
+    query_duration = (end_time - start_time).total_seconds()
+    if include_in_query_metrics:
+        total_query_runtime += query_duration
+    else:
+        print(
+            "Query runtime not included in totals due to being a table load operation."
+        )
     cost = get_query_cost(statement_id, start_time, end_time)
     total_cost += cost
     try:
         result_response = redshift_data.get_statement_result(Id=statement_id)
-        return result_response, start_time, end_time
     except redshift_data.exceptions.ResourceNotFoundException as e:
         print("No result to fetch for query")
-        return {"Id": statement_id}, start_time, end_time
+        result_response = {"Id": statement_id}
+    return result_response, start_time, end_time
 
 
 def format_runtime(seconds):
     hours, remainder = divmod(seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
-    formatted_runtime = f"{hours}h{minutes}m{seconds}s"
+    formatted_runtime = f"{hours}h{minutes}m{seconds:.2f}s"
     return formatted_runtime
 
 
@@ -122,15 +135,27 @@ def get_query_cost(statement_id, start_time, end_time):
 
 def load_data_to_redshift(table_name, s3_path, role_arn):
     # Load data into table
-    load_query = f"""
+    load_queries = [
+        f"""
     COPY public.{table_name}
     FROM '{s3_path}'
     IAM_ROLE '{role_arn}'
     FORMAT AS PARQUET
-    REGION 'us-east-1'
-    """
-    print(f"Loading data into Redshift serverless table '{table_name}'")
-    execute_query_and_get_result(load_query)
+    REGION 'us-east-1';
+    """,
+        f"ANALYZE public.{table_name};",
+        f"VACUUM FULL public.{table_name};",
+    ]
+    load_queries_descriptions = [
+        f"Loading data into Redshift serverless table '{table_name}'",
+        f"Analyzing '{table_name}'",
+        f"Running VACUUM FULL on '{table_name}'",
+    ]
+    for load_query, load_queries_description in zip(
+        load_queries, load_queries_descriptions
+    ):
+        print(load_queries_description)
+        execute_query_and_get_result(load_query, include_in_query_metrics=False)
 
     # Verify data loaded successfully
     row_count_query = f"SELECT COUNT(*) FROM public.{table_name}"
@@ -286,3 +311,7 @@ try:
         print("No data found.")
 except Exception as e:
     print(f"Error executing query: {e}")
+
+formatted_total_runtime = format_runtime(total_query_runtime)
+print(f"Total query runtime: {formatted_total_runtime}")
+print(f"Total query cost: ${total_cost:.2f}")

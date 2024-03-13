@@ -8,7 +8,7 @@ source temp_gcp_config.sh
 echo '#!/bin/bash' > dataproc_tsv_conversion_bootstrap.sh
 echo '/opt/conda/default/bin/pip3 install google-cloud-storage' >> dataproc_tsv_conversion_bootstrap.sh
 gcloud storage cp dataproc_tsv_conversion_bootstrap.sh gs://$DATAPROC_DATA_BUCKET/scripts/
-gcloud storage cp GCP_annotated_mutation_analytics_spark.py gs://$DATAPROC_DATA_BUCKET/scripts/
+gcloud storage cp 03_GCP_annotated_mutation_analytics_spark_union_dbs.py gs://$DATAPROC_DATA_BUCKET/scripts/
 
 METASTORE_URI=$(gcloud metastore services describe my-metastore-service --location=us-central1 --format="value(name)")
 
@@ -29,7 +29,7 @@ gcloud dataproc clusters create cluster-genomic-dataprep \
     --scopes 'https://www.googleapis.com/auth/cloud-platform' \
     --initialization-actions gs://${DATAPROC_DATA_BUCKET}/scripts/dataproc_genomics_bootstrap.sh
 
-gcloud dataproc jobs submit pyspark gs://$DATAPROC_DATA_BUCKET/scripts/GCP_annotated_mutation_analytics_spark.py \
+gcloud dataproc jobs submit pyspark gs://$DATAPROC_DATA_BUCKET/scripts/03_GCP_annotated_mutation_analytics_spark_union_dbs.py \
     --cluster=cluster-genomic-dataprep \
     --region=us-central1 \
     -- $OUTPUT_BUCKET

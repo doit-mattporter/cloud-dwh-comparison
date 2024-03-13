@@ -2,13 +2,13 @@
 # Run this on a c7g.2xlarge with 2 TB of local storage
 
 # Extract the [AWSConfig] section of the config file and convert it to a Bash-friendly format
-awk -F '=' '/^\[AWSConfig\]/ {flag=1; next} /^\[/ && flag {flag=0} flag && /=/ {gsub(/[[:space:]]*=[[:space:]]*/, "="); print $1 "=" $2}' ../../config.ini > aws_config.sh
-source aws_config.sh
+awk -F '=' '/^\[AWSConfig\]/ {flag=1; next} /^\[/ && flag {flag=0} flag && /=/ {gsub(/[[:space:]]*=[[:space:]]*/, "="); print $1 "=" $2}' ../../config.ini > aws_config.ini
+source aws_config.ini
 
 # Upload EMR bootstrapping script and step script to S3
 echo '#!/bin/bash' > emr_pyarrow_bootstrap.sh
 echo 'pip3 install boto3 pyarrow' >> emr_pyarrow_bootstrap.sh
-aws s3 cp aws_config.sh s3://$EMR_DATA_BUCKET/scripts/
+aws s3 cp aws_config.ini s3://$EMR_DATA_BUCKET/scripts/
 aws s3 cp emr_pyarrow_bootstrap.sh s3://$EMR_DATA_BUCKET/scripts/
 aws s3 cp 02a_AWS_grab_dbNSFP_bootstrap.sh s3://$EMR_DATA_BUCKET/scripts/
 aws s3 cp 02b_AWS_convert_tsvs_to_parquet.py s3://$EMR_DATA_BUCKET/scripts/
@@ -18,18 +18,18 @@ cat <<EOF >02a_AWS_grab_dbNSFP_startup_script.sh
 #!/bin/bash
 
 # Download the config and bootstrap script from S3
-aws s3 cp s3://${EMR_DATA_BUCKET}/scripts/aws_config.sh /tmp/aws_config.sh
-aws s3 cp s3://${EMR_DATA_BUCKET}/scripts/02a_AWS_grab_dbNSFP_bootstrap.sh /tmp/02a_AWS_grab_dbNSFP_bootstrap
-chmod +x /tmp/02a_AWS_grab_dbNSFP_bootstrap
+aws s3 cp s3://${EMR_DATA_BUCKET}/scripts/aws_config.ini /tmp/aws_config.ini
+aws s3 cp s3://${EMR_DATA_BUCKET}/scripts/02a_AWS_grab_dbNSFP_bootstrap.sh /tmp/02a_AWS_grab_dbNSFP_bootstrap.sh
+chmod +x /tmp/02a_AWS_grab_dbNSFP_bootstrap.sh
 
-source /tmp/aws_config.sh
+source /tmp/aws_config.ini
 echo EMR_MASTER_SG = $EMR_MASTER_SG
 echo EMR_SLAVE_SG = $EMR_SLAVE_SG
 echo EMR_DATA_BUCKET = $EMR_DATA_BUCKET
 echo OUTPUT_BUCKET = $OUTPUT_BUCKET
 
 # Run the bootstrap script
-/tmp/02a_AWS_grab_dbNSFP_bootstrap
+/tmp/02a_AWS_grab_dbNSFP_bootstrap.sh
 EOF
 
 # Upload the EC2 instance startup script (user data) for grabbing dbNSFP to S3

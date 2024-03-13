@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # Extract the [AWSConfig] section of the config file and convert it to a Bash-friendly format
-awk -F '=' '/^\[AWSConfig\]/ {flag=1; next} /^\[/ {flag=0} flag && /=/ {gsub(/[[:space:]]*=[[:space:]]*/, "="); print $1 "=" $2}' ../../config.ini > aws_config.sh
-source aws_config.sh
+awk -F '=' '/^\[AWSConfig\]/ {flag=1; next} /^\[/ {flag=0} flag && /=/ {gsub(/[[:space:]]*=[[:space:]]*/, "="); print $1 "=" $2}' ../../config.ini > aws_config.ini
+source aws_config.ini
 
 EMR_MASTER_SG=$(aws ec2 describe-security-groups --filters Name=group-name,Values=ElasticMapReduce-master --query 'SecurityGroups[0].GroupId' --output text)
 EMR_SLAVE_SG=$(aws ec2 describe-security-groups --filters Name=group-name,Values=ElasticMapReduce-slave --query 'SecurityGroups[0].GroupId' --output text)

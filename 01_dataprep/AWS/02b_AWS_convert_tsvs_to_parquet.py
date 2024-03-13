@@ -18,7 +18,11 @@ else:
 
 spark = (
     SparkSession.builder.appName("Convert_dbNSFP_TSVs_to_Parquet")
+    .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     .config("spark.sql.parquet.compression.codec", "snappy")
+    .config("spark.sql.cbo.enabled", True)
+    .config("spark.sql.cbo.joinReorder.enabled", True)
+    .config("spark.sql.adaptive.enabled", True)
     .enableHiveSupport()
     .getOrCreate()
 )

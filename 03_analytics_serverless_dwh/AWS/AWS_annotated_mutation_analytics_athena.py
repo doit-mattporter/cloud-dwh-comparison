@@ -9,7 +9,7 @@ config = configparser.ConfigParser()
 config.read("../../config.ini")
 athena_output_bucket_path = config["AWSConfig"]["ATHENA_OUTPUT_BUCKET_PATH"]
 glue_database = config["AWSConfig"]["GLUE_DATABASE"]
-cost_per_tb = config["AWSConfig"]["ATHENA_COST_PER_TB"]  # Cost per TB scanned in USD
+cost_per_tb = float(config["AWSConfig"]["ATHENA_COST_PER_TB"])
 
 client = boto3.client("athena", region_name="us-east-1")
 
@@ -17,12 +17,20 @@ with open("AWS_annotated_mutation_analytics_athena.sql", "r") as f:
     sql_commands = f.read().split(";")
 
 total_data_processed = 0
+total_query_time = 0
 
-start_time = time.time()
+
+def format_runtime(seconds):
+    hours, remainder = divmod(seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    formatted_runtime = f"{hours}h{minutes}m{seconds:.2f}s"
+    return formatted_runtime
+
 
 # Execute each SQL command and report on its cost
 for i, sql in enumerate(cmd for cmd in sql_commands if cmd.strip()):
     print(f"Executing Query {i+1}\n{sql}\n")
+    query_start_time = time.time()
     response = client.start_query_execution(
         QueryString=sql.strip(),
         QueryExecutionContext={"Database": glue_database},
@@ -38,7 +46,14 @@ for i, sql in enumerate(cmd for cmd in sql_commands if cmd.strip()):
         ]:
             break
         time.sleep(1)
-    bytes_processed = int(status["QueryExecution"]["Statistics"]["DataScannedInBytes"])
+    query_end_time = time.time()
+    query_time = query_end_time - query_start_time
+    total_query_time += query_time
+    bytes_processed = float(
+        status["QueryExecution"]["Statistics"]["DataScannedInBytes"]
+    )
+    print(f"bytes_processed: {bytes_processed}")
+    print(f"cost_per_tb: {cost_per_tb}")
     query_cost = (bytes_processed / 1e12) * cost_per_tb
     total_data_processed += bytes_processed
     print(
@@ -49,7 +64,8 @@ end_time = time.time()
 
 total_cost = (total_data_processed / 1e12) * cost_per_tb
 
-elapsed_time = end_time - start_time
-print(f"Total time elapsed: {elapsed_time:.2f} seconds")
+print(
+    f"Total query time: {format_runtime(total_query_time)}"
+)  # Print total query runtime
 print(f"Total data processed: {total_data_processed / 1e9:.2f} GB")
 print(f"Total cost: ${total_cost:.2f}")

@@ -11,8 +11,8 @@
 # Note that the default base capacity is 128; this is too expensive for a demo. 128+ is intended for PB-scale datasets.
 
 # Extract the [AWSConfig] section of the config file and convert it to a Bash-friendly format
-awk -F '=' '/^\[AWSConfig\]/ {flag=1; next} /^\[/ && flag {flag=0} flag && /=/ {gsub(/[[:space:]]*=[[:space:]]*/, "="); print $1 "=" $2}' ../../config.ini > temp_aws_config.sh
-source temp_aws_config.sh
+awk -F '=' '/^\[AWSConfig\]/ {flag=1; next} /^\[/ && flag {flag=0} flag && /=/ {gsub(/[[:space:]]*=[[:space:]]*/, "="); print $1 "=" $2}' ../../config.ini > temp_aws_config.ini
+source temp_aws_config.ini
 
 # Create a us-east-1 endpoint
 if aws redshift-serverless get-endpoint-access --endpoint-name $REDSHIFT_ENDPOINT_NAME --region us-east-1 --no-cli-pager 2>/dev/null; then

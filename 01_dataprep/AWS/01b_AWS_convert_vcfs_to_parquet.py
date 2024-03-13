@@ -16,7 +16,11 @@ else:
 
 spark = (
     SparkSession.builder.appName("Convert_gnomAD_VCFs_to_Parquet")
+    .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     .config("spark.sql.parquet.compression.codec", "snappy")
+    .config("spark.sql.cbo.enabled", True)
+    .config("spark.sql.cbo.joinReorder.enabled", True)
+    .config("spark.sql.adaptive.enabled", True)
     .config("spark.jars.packages", "io.projectglow:glow-spark3_2.12:1.2.1")
     .config("spark.hadoop.io.compression.codecs", "io.projectglow.sql.util.BGZFCodec")
     .enableHiveSupport()
