@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # YOU WILL NEED TO SET UP REDSHIFT SERVERLESS IN THE WEB CONSOLE!
 # THE AWS CLI AND PYTHON SDKS DO NOT CURRENTLY SUPPORT INITIALIZING REDSHIFT SERVERLESS
-# SELECT THE AI-POWERED 'Price-performance targets' workgroup option with a value '50'/'Balanced' workload target
 
-# First, create your Redshift serverless instance with these values:
+# Start off by selecting the AI-powered 'Price-performance targets' workgroup option with a value '50'/'Balanced' workload target
+# Next, create your Redshift serverless instance with these values:
 # workgroup-name='default-workgroup-ai'
 # namespace-name='default-ai'
 # endpoint-name='us-east-1-endpoint-ai'
-# Set a base capacity of 16 RPUs and a max capacity of 128 (to enable auto-scaling for loading gnomAD data).
-# Note that the default base capacity is 128; this is too expensive for a demo. 128+ is intended for PB-scale datasets.
+# Set a base capacity of 16 RPUs and a max capacity of 128 - this enables auto-scaling necessary for loading gnomAD data
+# Note that the default base capacity is 128. This is too expensive for a demo. 128+ is intended for PB-scale datasets.
 
 # Extract the [AWSConfig] section of the config file and convert it to a Bash-friendly format
 awk -F '=' '/^\[AWSConfig\]/ {flag=1; next} /^\[/ && flag {flag=0} flag && /=/ {gsub(/[[:space:]]*=[[:space:]]*/, "="); print $1 "=" $2}' ../../config.ini > temp_aws_config.ini
