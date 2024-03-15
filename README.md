@@ -1,5 +1,5 @@
 # cloud-dwh-comparison
-This code base pairs with the following blog post: [Enterprise Data Warehousing and Analytics: AWS vs. GCP](https://medium.com/p/acfc250c1096).
+This code base pairs with the following blog post: [GCP vs AWS Data Warehousing and Analytics: Which Service to Pick?](https://medium.com/p/acfc250c1096).
 
 Presented below are the instructions required to replicate the findings and benchmarks presented in the blog. Execution of these scripts assume that they are being run in an AWS account / GCP playground where the AWS CLI / gcloud CLI have been authenticated with an IAM entity that possesses Admin/Project Owner IAM roles over the account / playground.
 
