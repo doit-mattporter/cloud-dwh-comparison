@@ -43,7 +43,7 @@ Once these values are filled in, the scripts you will run in the following steps
     * Total data processed
     * Total OLAP query cost
   * Run `03_analytics_serverless_dwh/AWS/redshift_serverless_setup.sh` to prepare a Redshift Serverless instance for data table loading and query execution.
-    * NOTE: It is, surprisingly, not possible to initially create a Redshift Serverless instance through CLI commands or any other automated means. There are manual steps detailed in header comments in this script which you MUST first follow before running this script.
+    * NOTE: While it is possible to largely automate creation of a Redshift Serverless instance through the CLI commands in that script, there are some features that should be enabled which can only be enabled manually by navigating through the Redshift web console. The key feature you will want to manually enable in order to reproduce benchmarks is the the AI-powered 'Price-performance targets' workgroup option with a value '50'/'Balanced' workload target.
   * Run `03_analytics_serverless_dwh/AWS/AWS_annotated_mutation_analytics_redshift_serverless.py` to load the merged databases Parquet file created at the end of Part 1 and execute 17 complex genomics OLAP queries against it by using AWS Redshift Serverless. This script will report:
     * Individual query runtimes and cost (so that table load runtimes can be calculated)
     * Total analytical query time (excludes table load runtimes)
